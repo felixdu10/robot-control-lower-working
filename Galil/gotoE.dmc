@@ -1,0 +1,42 @@
+#gotoE_
+MOE;MTE=1;JGE=0;FVE=1;FAE=1;
+ACE=8000;DCE=50000;SB5;SB13;
+kpE=.7;bandE=2;minSPE=1200;
+offE=0.2;OFE=offE;
+IF (_TPE - ^a) > 0; MTE = -1;OFE=-offE;ENDIF
+SHE; 
+#whileE
+curPosE=_TPE;errE=(curPosE - ^a);absErrE=@ABS[errE];
+IF absErrE < bandE; JP #breakE; ENDIF
+vE=kpE * absErrE
+IF vE < minSPE; vE = minSPE; ENDIF
+IF errE > 0; 
+	IF 1 - @OUT[13]; 
+		SB13; SB5; STE; WT225; MTE=-1; OFE=-offE;SHE;
+	ENDIF; 
+	IF @OUT[5];CB5;ENDIF;
+	JGE=-vE; 
+ELSE; 
+	IF 1 - @OUT[5]; 
+		SB13; SB5; STE; WT225; MTE = 1; OFE = offE;SHE;
+	ENDIF;
+	IF @OUT[13]; CB13; ENDIF;
+	JGE=vE;  
+ENDIF;
+tmpE = _TTE;tmp2E = _MTE; 
+IF ((tmpE * tmp2E) + 0.45) < 0; 
+	SB5; SB13; STE; WT250; JP #gotoE; 
+ENDIF;
+BGE;
+JP #whileE
+#breakE
+SB5; SB13; ST E; WT 225; MOE;
+EN
+
+#gotoE
+eFIN = 0;tUME = tgtCtE;
+JS #gotoE_(tUME); 
+JS #gotoE_(tUME);
+SHE;
+eFIN = 1;
+EN

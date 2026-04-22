@@ -1,0 +1,10 @@
+##
+##
+#main
+OP65535;TL 3.2,3.2,3.2,3.2,3.2,3.2; 
+JS #gotoE(6000);
+EN
+##include "/home/amiro/Documents/Galil/gotoA.dmc"
+##include "/home/amiro/Documents/Galil/gotoB.dmc"
+##include "/home/amiro/Documents/Galil/gotoE.dmc"
+##include "/home/amiro/Documents/Galil/gotoF.dmc"

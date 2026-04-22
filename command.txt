@@ -1,0 +1,4 @@
+sudo ip addr flush dev enx00e04c6801d9
+sudo ip addr add 192.168.1.100/24 dev enx00e04c6801d9
+sudo ip addr flush dev enp2s0
+sudo ip addr add 172.17.1.100/24 dev enp2s0

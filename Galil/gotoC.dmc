@@ -1,0 +1,43 @@
+#gotoC_
+MOC; MTC=1;JGC=0;FVC=1;FAC=1; 
+ACC=256000; DCC=256000;SB8; SB16; 
+kpC=.7;bandC=2; minSPC=1200; 
+offC=0.15;OFC=offC; 
+IF (_TPC - ^a) > 0;MTC=-1;OFC=-offC;ENDIF;
+SHC; 
+#whileC
+curPosC=_TPC;errC=(curPosC - ^a);absErrC=@ABS[errC]; 
+IF absErrC < bandC; JP #breakC; ENDIF
+vC=kpC * absErrC
+IF vC < minSPC; vC = minSPC; ENDIF
+IF errC > 0; 
+	IF 1 - @OUT[16]; 
+		SB16; SB8; STC; WT50; MTC=-1;OFC=-offC; WT50; SHC;
+	ENDIF; 
+	IF @OUT[8];CB8;ENDIF;
+	JGC=-vC; 
+ELSE; 
+	IF 1 - @OUT[8]; 
+		SB8; SB16; STC; WT 50; MTC=1; OFC=offC; WT50; SHC; 
+	ENDIF;
+	IF @OUT[16];CB16;ENDIF;	
+	JGC=vC; 
+ENDIF;
+tmpC = _TTC;tmp2C = _MTC; 
+IF ((tmpC * tmp2C)) < -0.25; 
+	SB8; SB16; STC; WT250; JP #gotoC; 
+ENDIF;
+BGC;
+JP #whileC
+EN
+#breakC
+	SB8; SB16;STC; WT 100; MOC;
+EN
+
+#gotoC
+cFIN = 0;tUMC=tgtCtC;
+JS #gotoC_(tUMC); 
+JS #gotoC_(tUMC);
+SHC;
+cFIN = 1;
+EN

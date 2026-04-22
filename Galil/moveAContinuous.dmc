@@ -1,0 +1,69 @@
+##
+##
+
+MAX_ERR = 5
+
+tgtA=0
+curPosA=0
+dirA=1
+quit=0
+
+#UpdateA
+curPosA = _TPA;
+errA = curPosA - tgtA;
+absErrA = @ABS[errA];
+
+IF(quit)
+	JP #end
+ENDIF
+IF(tgtA - curPosA < MAX_ERR)
+	JP #quitA
+ENDIF
+
+IF(dmotion = 0 AND ((tgtA- curPosA) * (dirA - 0.5) > 0))
+	JP #quitA
+ENDIF
+
+IF(dmotion = 1)
+	dmotion = 0
+	STA;
+	WT 225;
+
+	MOA;
+	SB10;
+	SB2;
+	IF(AtgtCT > 0)
+		MTA=1;
+	ELSE
+		IF(AtgtCT < 0)
+			dirA=-1;
+			MTA=1;
+		ENDIF
+	ENDIF
+	SHA;
+
+	WT100;
+	JGA=6000;
+	TLA=1;
+ENDIF
+
+IF(dirA = 1)
+	CB2;
+ELSE
+	CB10;
+ENDIF
+
+#quitA
+	SB2; SB10;
+	quitA=1;
+	STA; 
+	curPosA = _TPA;
+	errA = curPosA - tgtA;
+	absErrA = @ABS[errA];
+	dmotion = 1
+	MG "A error: ", errA;
+	WT100
+	JP #UpdateA
+
+#end
+	EN

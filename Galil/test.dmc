@@ -1,0 +1,81 @@
+##
+##
+
+#M 
+//LEFT, RIGHT
+// JS #GoToLow(30.06, 23.91)
+JS #GoToUp(70.285, 65.285);
+//JS #MoveFT;
+JS #waitALL;
+MG "DONE"
+EN
+
+//#MoveFT
+//CtF=_TPF;
+//move forward 10mm
+//TL 3.2,3.2,3.2,3.2,3.2,3.2;
+//tgtCtF=CtF+9485.86925;
+//XQ #GoToF, 5;
+//EN
+
+#GoToLow
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+TLE=1.0;TLB=1.0;
+// tgtMmB = ^b; tgtMmE = ^a;
+dMotion = 0
+JS #mmToCtE;JS #mmToCtB;
+XQ #gotoB, 1;
+XQ #gotoE, 2;
+JS #waitB; 
+JS #waitE;
+dMotion = 1
+EN
+
+#GoToUp
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+tgtMmA = ^b; tgtMmF = ^a;
+JS #mmToCtA;JS #mmToCtF;
+XQ #gotoA, 4;
+XQ #gotoF, 5;
+// JS #waitA; 
+// JS #waitF;
+EN
+
+#GoToPos
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+TLE=1.0;TLB=1.0;
+isRun = 1;
+XQ #upTrj, 3; 
+tgtMmB = ^b; tgtMmE = ^a;
+JS #mmToCtE;JS #mmToCtB;
+XQ #gotoB, 1;
+XQ #gotoE, 2;
+WT 250;
+XQ #reHoA, 4;
+XQ #reHoF, 5;
+JS #waitALL;
+isRun = 0;
+WT 2000;
+EN
+
+
+#upTrj
+JS #trkLow;
+JS #mmToCtA;JS #mmToCtF;
+dPosF = tgtCtF;
+dPosA = tgtCtA;
+dVelF = _TVE;
+dVelA = _TVE;
+WT 2;
+IF isRun;
+	JP #upTrj;
+ENDIF;
+EN
+
+
+##include "/home/amiro/Documents/Galil/gotoB.dmc"
+##include "/home/amiro/Documents/Galil/gotoE.dmc"
+##include "/home/amiro/Documents/Galil/helpers.dmc"
+##include "/home/amiro/Documents/Galil/calibration.dmc"
+##include "/home/amiro/Documents/Galil/A.dmc"
+##include "/home/amiro/Documents/Galil/F.dmc"

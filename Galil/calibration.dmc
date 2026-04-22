@@ -1,0 +1,69 @@
+##
+##
+
+#mmToCtA
+tgtCtA = (947.419292 * tgtMmA) - 50690.572792;
+// tgtCtA = @RND[tgtCtA]
+EN
+
+#mmToCtB
+tgtCtB = (942.555021 * tgtMmB) - 15682.736547;
+// tgtCtB = @RND[tgtCtB]
+EN
+
+#mmToCtE
+tgtCtE = (944.160381 * tgtMmE) - 18835.274735;
+// tgtCtE = @RND[tgtCtE]
+EN
+
+#mmToCtF
+tgtCtF = (948.586925 * tgtMmF) - 51234.285957;
+// tgtCtF = @RND[tgtCtF]
+EN
+
+#ctToMmA
+tgtMmA = (tgtCtA / 947.419292) + 53.71;
+EN
+
+#ctToMmB
+tgtMmB = (tgtCtB / 942.555021) + 16.63853695;
+EN
+
+#ctToMmE
+tgtMmE = (tgtCtE / 944.160381) + 19.94923226;
+EN
+
+#ctToMmF
+tgtMmF = (tgtCtF / 948.586925) + 53.92;
+EN
+
+
+#mmToCt
+JS #mmToCtA;JS #mmToCtB;JS #mmToCtE;JS #mmToCtF;
+EN
+
+#ctToMm
+JS #ctToMmA;JS #ctToMmB;JS #ctToMmE;JS #ctToMmF;
+EN
+
+#trkLow
+tgtCtE = _TPE; //left
+tgtCtB = _TPB; //right
+JS #ctToMmE; JS #ctToMmB; 
+tgtMmE = tgtMmE + 19.35; tgtMmB=tgtMmB + 19.35; 
+tmpTgtF = (2.44383701 * tgtMmE) + (-0.43298677 * tgtMmB) 
+tmpTgtF = tmpTgtF + ((tgtMmE * tgtMmE) / -78.65643882)  
+tmpTgtF = tmpTgtF + ((tgtMmE * tgtMmB) / -411.72511304) 
+tmpTgtF = tmpTgtF + ((tgtMmB * tgtMmB) / 194.15666914)
+tmpTgtF = tmpTgtF + 8.56729893;
+
+tmpTgtA = (-0.41384296 * tgtMmE) + (2.48756595 * tgtMmB) 
+tmpTgtA = tmpTgtA + ((tgtMmE * tgtMmE) / 218.96969212)  
+tmpTgtA = tmpTgtA + ((tgtMmE * tgtMmB) / 569.1917923) 
+tmpTgtA = tmpTgtA + ((tgtMmB * tgtMmB) / -79.26522283)
+tmpTgtA = tmpTgtA + 5.35798977;
+
+tgtMmA = tmpTgtA - 19.35;tgtMmF = tmpTgtF - 19.35;
+JS #mmToCtF; JS #mmToCtA;
+EN
+

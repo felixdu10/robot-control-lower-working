@@ -1,0 +1,16 @@
+durF=500
+STF; 
+WT100;
+MOF;
+MTF=1; 
+SHF; 
+WT100;
+TLF=1.2;
+JGF=6000;
+BGF; 
+CB7;
+WT durF;
+SB15;
+SB7; 
+STF; 
+EN;

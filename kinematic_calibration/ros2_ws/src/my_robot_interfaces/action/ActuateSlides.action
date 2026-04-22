@@ -1,0 +1,18 @@
+# Goal
+string command
+float32[4] target_positions
+float32 speed
+
+---
+# Result
+bool success
+string message
+float32[4] final_positions
+
+---
+# Feedback
+float32[4] current_positions
+string state
+float32 progress
+bool[4] limit_switches
+int32 error_code

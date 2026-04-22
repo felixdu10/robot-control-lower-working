@@ -1,0 +1,277 @@
+##
+##
+
+FtgtCT = 948.586925*0;
+BtgtCT = 948.586925*0;
+EtgtCT = 948.586925*0;
+AtgtCT = 947.419292*0;
+
+BtgtCT=348
+//AtgtCT =-2821
+//FtgtCT=-2819
+//EtgtCT= -2312
+//EtgtCT = EtgtCT + (948.586925*0.1724);
+
+#MoveAll
+dirA=1;
+dirF=1;
+dirE=1;
+dirB=1;
+
+dMotion=0;
+#motors
+STF;
+STB;
+STE;
+STA;
+WT 225;
+
+MOF;
+SB15;
+SB7;
+IF(FtgtCT > 0)
+	MTF=1;
+ELSE
+	IF (FtgtCT < 0)
+		MTF=1;
+		dirF=-1
+	ENDIF
+ENDIF
+SHF;
+
+MOB;
+SB1;
+SB9;
+IF(BtgtCT > 0)
+	MTB=1;
+ELSE
+	IF(BtgtCT < 0)
+		MTB=1;
+		dirB=-1
+	ENDIF
+ENDIF
+SHB;
+
+MOE;
+SB13;
+SB5;
+IF(EtgtCT > 0)
+	MTE=1;
+ELSE
+	IF (EtgtCT < 0)
+		MTE=1;
+		dirE=-1
+	ENDIF
+ENDIF
+SHE;
+
+MOA;
+SB10;
+SB2;
+IF(AtgtCT > 0)
+	MTA=1;
+ELSE
+	IF(AtgtCT < 0)
+		dirA=-1;
+		MTA=1;
+	ENDIF
+ENDIF
+SHA;
+
+WT100;
+JGF=6000;
+TLF=1;
+
+JGA=6000;
+TLA=1;
+
+JGE=6000;
+TLE=1.2;
+
+
+JGB=6000;
+TLB=1.2;
+
+IF (AtgtCT = 0)
+	quitA=1;
+ELSE
+	quitA=0;
+ENDIF
+
+IF (FtgtCT = 0)
+	quitF=1;
+ELSE
+	quitF=0;
+ENDIF
+
+IF (BtgtCT = 0)
+	quitB=1;
+ELSE
+	quitB=0;
+ENDIF
+
+IF (EtgtCT = 0)
+	quitE=1;
+ELSE
+	quitE=0;
+ENDIF
+
+JS #start
+EN
+
+
+#start
+curPosB= _TPB;
+tgtB = curPosB - BtgtCT;
+
+curPosF = _TPF;
+tgtF = curPosF - FtgtCT;
+
+curPosE= _TPE;
+tgtE = curPosE - EtgtCT;
+
+curPosA = _TPA;
+tgtA = curPosA - AtgtCT;
+MG tgtA;
+MG tgtF;
+MG tgtE;
+MG tgtB;
+
+IF(quitA = 0); BGA; ENDIF;
+IF(quitB = 0); BGB; ENDIF;
+IF(quitE = 0); BGE; ENDIF;
+IF(quitF = 0); BGF; ENDIF;
+IF (quitF=0)
+	IF(dirF = 1)
+		CB7;
+	ELSE
+		CB15;
+	ENDIF
+ENDIF
+
+IF (quitA = 0)
+	IF(dirA = 1)
+		CB2;
+	ELSE
+		CB10;
+	ENDIF
+ENDIF
+
+
+IF (quitE = 0)
+	IF(dirE = 1)
+		CB5;
+	ELSE
+		CB13;
+	ENDIF
+ENDIF
+
+
+IF (quitB = 0)
+	IF(dirB = 1)
+		CB1;
+	ELSE
+		CB9;
+	ENDIF
+ENDIF
+
+#while
+curPosB = _TPB;
+errB = curPosB - tgtB;
+absErrB = @ABS[errB];
+//MG errB*dirB;
+curPosE = _TPE;
+errE = curPosE - tgtE;
+absErrE = @ABS[errE];
+
+curPosF = _TPF;
+errF = curPosF - tgtF;
+absErrF = @ABS[errF];
+
+
+curPosA = _TPA;
+errA = curPosA - tgtA;
+absErrA = @ABS[errA];
+
+IF (quitE=0) & (dirE*errE < 5);
+	JP #quitE;
+ENDIF
+
+//MG dirA*errA;
+IF (quitA = 0) & (dirA*errA < 5);
+	JP #quitA;
+ENDIF
+
+IF (quitF=0) & (dirF*errF < 5);
+	JP #quitF;
+ENDIF
+
+IF (quitB = 0) & (dirB*errB < 5);
+	JP #quitB;
+ENDIF
+
+IF (quitA) & (quitF) & (quitE) & (quitB)
+	JP #quit
+ENDIF
+JP #while
+
+
+#quitB
+	SB1; SB9;
+	quitB=1;
+	STB; 
+	curPosB = _TPB;
+	errB = curPosB - tgtB;
+	absErrB = @ABS[errB];
+	MG "B error: ", errB;
+	JP #while
+
+#quitE
+	SB5; SB13;
+	quitE=1;
+	STE; 
+	curPosE = _TPE;
+	errE = curPosE - tgtE;
+	absErrE = @ABS[errE];
+	MG "E error: ", errE;
+	JP #while
+
+#quitF
+	SB7; SB15;
+	quitF=1
+	STF; 
+	//MOF;
+	curPosF = _TPF;
+	errF = curPosF - tgtF;
+	absErrF = @ABS[errF];
+	//MG curPosF;
+ 	MG "F error: ", errF;
+	JP #while
+
+#quitA
+	SB2; SB10;
+	quitA=1;
+	STA; 
+	curPosA = _TPA;
+	errA = curPosA - tgtA;
+	absErrA = @ABS[errA];
+	//MG curPosA;
+	MG "A error: ", errA;
+	JP #while
+
+#quit
+	MG "DONE";
+	dMotion = 1;
+	curPosA = _TPA;
+	curPosE = _TPE;
+	curPosB = _TPB;
+	curPosF = _TPF;
+	errA = curPosA - tgtA;
+	errF = curPosF - tgtF;
+	errE = curPosE - tgtE;
+	errB = curPosB- tgtB;
+	MG "A error: ", errA;
+	MG "B error: ", errB;
+	MG "E error: ", errE;	
+	MG "F error: ", errF;
+	EN;

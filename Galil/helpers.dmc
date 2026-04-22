@@ -1,0 +1,29 @@
+#waitF
+IF (fFIN); JP #mfbFp; ENDIF;
+WT 100;
+JP #waitF
+#mfbFp
+EN
+
+#waitB
+IF (bFIN); JP #mfbBp; ENDIF;
+WT 100;
+JP #waitB
+#mfbBp
+EN
+#waitE
+IF (eFIN); JP #mfbEp; ENDIF;
+WT 100;
+JP #waitE
+#mfbEp
+EN
+#waitA
+IF (aFIN); JP #mfbAp; ENDIF;
+WT 100;
+JP #waitA
+#mfbAp
+EN
+
+#waitALL
+JS #waitA;JS #waitB;JS #waitE;JS #waitF;
+EN

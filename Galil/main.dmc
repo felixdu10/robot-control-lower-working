@@ -1,0 +1,51 @@
+##
+##
+#AUTO
+
+EN
+
+#M
+dMotion = 0.0
+CB 14; WT time; SB 14;
+dMotion = 1.0
+EN
+
+#GoToPos
+dMotion = 0.0
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+TLE=1.0;TLB=1.0;
+isRun = 1;
+XQ #upTrj, 3; 
+JS #mmToCtE;JS #mmToCtB;
+XQ #gotoB, 1;
+XQ #gotoE, 2;
+WT 250;
+XQ #reHoA, 4;
+XQ #reHoF, 5;
+JS #waitALL;
+isRun = 0;
+WT 2000;
+dMotion = 1.0
+EN
+
+
+#upTrj
+JS #trkLow;
+JS #mmToCtA;JS #mmToCtF;
+dPosF = tgtCtF;
+dPosA = tgtCtA;
+dVelF = _TVE;
+dVelA = _TVE;
+WT 2;
+IF isRun;
+	JP #upTrj;
+ENDIF;
+EN
+
+
+##include "/home/tyler/projects/robot_control_code/Galil/gotoB.dmc"
+##include "/home/tyler/projects/robot_control_code/Galil/gotoE.dmc"
+##include "/home/tyler/projects/robot_control_code/Galil/helpers.dmc"
+##include "/home/tyler/projects/robot_control_code/Galil/calibration.dmc"
+##include "/home/tyler/projects/robot_control_code/Galil/A.dmc"
+##include "/home/tyler/projects/robot_control_code/Galil/F.dmc"

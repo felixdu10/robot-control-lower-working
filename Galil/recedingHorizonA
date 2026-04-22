@@ -1,0 +1,47 @@
+#reHoA_
+JGA=0; FVA=1; FAA=1; OFA = 0.2
+ACA=20000; DCA=256000; SB1; SB9;
+kpA=.2;bandA=2000;minSPA=1200; 
+runErrA = 0;
+IF (_TPA - _TPB) > 0;MTA = -1;ENDIF
+#hoA
+curPosA=_TPA;curErrA=(curPosA - _TPB);
+runErrA = runErrA * .95 + .05 * curErrA;
+absErrA=@ABS[runErrA]; 
+IF absErrA < bandA; 
+	SB1; SB9; STA;
+#hoWaA
+	curErrA = _TPA - _TPB
+	runErrA = runErrA * .95 + .05 * curErrA;
+	absErrA=@ABS[runErrA]; 
+	WT 10; 
+	JP #hoWaA, absErrA < bandA
+EN
+SHA;
+ENDIF
+vA=kpA * absErrA
+IF vA < minSPA; vA = minSPA; ENDIF
+IF runErrA > 0; 
+	JGA = -vA;
+	IF 1 - @OUT[9]; SB9; STA; WT 10; MTA = -1; SHA; WT 10;ENDIF; 
+	CB1; 
+ELSE; 
+	JGA = vA; 
+	IF 1 - @OUT[1]; SB1; STA; WT 10; MTA = 1; SHA; WT 10;ENDIF;
+	CB9; 
+ENDIF;
+tmpA = _TTA;tmp2A = _MTA; 
+IF ((tmpA * tmp2A) + 0.45) < 0; 
+	MG "VLIM"; SB1; SB9; STA; WT1000; SHA; JP #hoA; 
+ENDIF;
+BGA;
+JP #hoA
+EN
+EN
+
+#reHoA
+MOA; MTA = 1; SHA; 
+JS #reHoA_; 
+SHA;
+JP #reHoA
+EN

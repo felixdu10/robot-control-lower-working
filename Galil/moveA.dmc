@@ -1,0 +1,49 @@
+##
+##
+#MoveA
+BkLshCt=947.419292*(0.2672);
+BkLshCt=0;
+AtgtCT = 1000;
+STA;
+MOA;
+SPA=200;
+SHA;
+IF(AtgtCT > 0)
+	MTA=1;
+	CB2;
+	SB10;
+ELSE
+	MTA=-1;
+	CB10;
+	SB2;
+ENDIF
+JS #startA
+EN
+
+
+#startA
+curPosA = _TPA;
+tgtA = curPosA - AtgtCT;
+MG tgtA;
+BGA;
+#whileA
+curPosA = _TPA;
+errA = curPosA - tgtA;
+absErrA = @ABS[errA];
+//MG curPosF;
+//MG errF;
+IF (absErrA < 3);
+	JP #quitA;
+ENDIF
+JP #whileA
+
+#quitA
+	SB2; SB10;
+	STA; 
+	MOA;
+	curPosA = _TPA;
+	errA = curPosA - tgtA;
+	absErrA = @ABS[errA];
+	MG curPosA;
+  MG errA;
+	EN;

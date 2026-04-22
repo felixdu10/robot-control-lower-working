@@ -1,0 +1,10 @@
+{
+    "galil_motors.gmap": {
+        "enabled": true,
+        "name": "Galil Motors"
+    },
+    "my_motors.gmap": {
+        "enabled": true,
+        "name": "My Motors"
+    }
+}

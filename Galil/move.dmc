@@ -1,0 +1,8 @@
+#M 
+	MTB = 1; SHB; 
+	CMB; SB 2; SB 10;
+	CD 25000=1000; CB 10;
+	CD 0=0;
+#Wait;JP#Wait,_CM<>511;EN
+SB10;
+EN

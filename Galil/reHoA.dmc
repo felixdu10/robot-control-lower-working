@@ -1,0 +1,60 @@
+#reHoA
+aFIN = 0;
+MOA; MTA=1; JGA=0; FVA=1; FAA=1;
+ACA=12000; DCA=50000; SB1; SB9;
+kpA=2.9;bandA=250;minSPA=1100;
+offA = 0.20;OFA=offA;
+IF (_TPA - dPosA) > 0;MTA=-1;OFA=-offA;ENDIF
+SHA;
+dirA = _MTA; tmpA = _TTA; 
+#loopHoA
+poErA = _TPA - dPosA;
+dSpA = @ABS[dVelA]; 
+absPoEr = @ABS[poErA];
+IF (absPoEr < bandA);
+	IF (bFIN + eFIN) = 2;
+		JP #brkHoA;
+	ENDIF;
+	vA=kpA * absPoEr + dSpA;
+ELSE; 
+	vA=kpA * absPoEr + dSpA;
+ENDIF;
+IF vA < minSPA; vA = minSPA; ENDIF
+IF poErA > 0; 
+	IF 1 - @OUT[9]; 
+		SB9; SB1; STA; WT 225; MTA = -1; OFA=-offA; SHA; 
+	ENDIF; 
+	IF @OUT[1]; CB1; ENDIF; 
+	JGA = -vA;
+ELSE; 
+	IF 1 - @OUT[1]; 
+		SB1; SB9; STA; WT 225; MTA = 1; OFA=offA; SHA; 
+	ENDIF;
+	IF @OUT[9]; CB9; ENDIF; 
+	JGA = vA;
+ENDIF;
+
+tmpA = _TTA;tmp2A = _MTA; 
+IF ((tmpA * tmp2A) < -0.45); 
+	SB1; SB9; STA; WT250; JP #reHoA; 
+ENDIF;
+BGA;
+stallCtA = 0;
+#stallA
+IF (@ABS[_TVA] < 10) & (vA > 500);
+	stallCtA = stallCtA + 1;
+	IF stallCtA > 50; 
+		MG "A STALLED"; JP #brkHoA;
+REM 		STA; WT 225;
+REM 		IF 1 - @OUT[1]; SB1; WT10; CB1; ENDIF; 
+REM 		IF 1 - @OUT[9]; SB9; WT10; CB9; ENDIF; 
+REM 		SHA;
+REM 		JP #loopHoA;
+	ENDIF;
+	JP #stallA;
+ENDIF;
+JP #loopHoA;
+#brkHoA
+	SB1; SB9; STA; WT500; SHA;
+	aFIN = 1;
+EN

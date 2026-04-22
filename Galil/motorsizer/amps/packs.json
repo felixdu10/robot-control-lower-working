@@ -1,0 +1,10 @@
+{
+    "galil_amps.gmap": {
+        "enabled": true,
+        "name": "Galil Amps"
+    },
+    "my_amps.gmap": {
+        "enabled": true,
+        "name": "My Amps"
+    }
+}

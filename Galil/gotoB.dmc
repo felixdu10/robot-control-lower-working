@@ -1,0 +1,43 @@
+#gotoB_
+MOB; MTB = 1; JGB=0; FVB=1; FAB=1; 
+ACB=8000; DCB=50000;SB2; SB10; 
+kpB=.7;bandB=2; minSPB=1200; 
+offB = 0.15;OFB=offB; 
+IF (_TPB - ^a) > 0;MTB = -1;OFB=-offB;ENDIF;
+SHB; 
+#whileB
+curPosB=_TPB;errB=(curPosB - ^a);absErrB=@ABS[errB]; 
+IF absErrB < bandB; JP #breakB; ENDIF
+vB=kpB * absErrB
+IF vB < minSPB; vB = minSPB; ENDIF
+IF errB > 0; 
+	IF 1 - @OUT[10]; 
+		SB10; SB2; STB; WT 225; MTB = -1; OFFB=-offB; SHB;
+	ENDIF; 
+	IF @OUT[2];CB2;ENDIF;
+	JGB = -vB; 
+ELSE; 
+	JGB = vB; 
+	IF 1 - @OUT[2]; 
+		SB2; SB10; STB; WT 225; MTB = 1; OFB=offB; SHB; 
+	ENDIF;
+	IF @OUT[10];CB10;ENDIF;	
+ENDIF;
+tmpB = _TTB;tmp2B = _MTB; 
+IF ((tmpB * tmp2B) + 0.45) < 0; 
+	SB2; SB10; STB; WT250; JP #gotoB; 
+ENDIF;
+BGB;
+JP #whileB
+EN
+#breakB
+	SB2; SB10;ST B; WT 225; MO B;
+EN
+
+#gotoB
+bFIN = 0;tUMB=tgtCtB;
+JS #gotoB_(tUMB); 
+JS #gotoB_(tUMB);
+SHB;
+bFIN = 1;
+EN

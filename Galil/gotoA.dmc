@@ -1,0 +1,42 @@
+#gotoA_
+MOA; MTA = 1; JGA=0; FVA=1; FAA=1;
+ACA=12000; DCA=50000; SB1; SB9;
+kpA=1.15;bandA=2; minSPA=1200; 
+offA = 0.2;OFA = offA;
+IF (_TPA - ^a) > 0;MTA = -1; OFA=-offA; ENDIF
+SHA; 
+#whileA
+curPosA=_TPA;errA=(curPosA - ^a);absErrA=@ABS[errA]; 
+IF absErrA < bandA; JP #breakA; ENDIF
+vA=kpA * absErrA
+IF vA < minSPA; vA = minSPA; ENDIF
+IF errA > 0; 
+	IF 1 - @OUT[9]; 
+		SB9; SB1; STA; WT 225; MTA = -1; OFA=-offA; SHA; 
+	ENDIF; 
+	IF @OUT[1]; CB1; ENDIF; 
+	JGA = -vA;
+ELSE; 
+	IF 1 - @OUT[1]; 
+		SB1; SB9; STA; WT 225; MTA = 1; OFA=offA; SHA; 
+	ENDIF;
+	IF @OUT[9]; CB9; ENDIF; 
+	JGA = vA;
+ENDIF;
+tmpA = _TTA;tmp2A = _MTA; 
+IF ((tmpA * tmp2A) < -0.45); 
+	SB1; SB9; STA; WT250; JP #gotoA; 
+ENDIF;
+BGA;
+JP #whileA
+#breakA
+	SB1; SB9; STA; WT 100; MOA; 
+EN
+
+#gotoA
+aFIN = 0;tUMA = tgtCtA;
+JS #gotoA_(tUMA); 
+JS #gotoA_(tUMA);
+SHA;
+aFIN = 1;
+EN

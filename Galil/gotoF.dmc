@@ -1,0 +1,50 @@
+##
+##
+#gotoF_
+STF; MOF; MTF = 1; JGF=0; FVF=1; FAF=1;
+ACF=8000; DCF=50000; SBFbit; SBBbit; 
+kpF=1.15;bandF=2; minSPF = 1200;
+offF=.3;OFF=offF;
+IF (_TPF - ^a) > 0;MTF = -1;OFF=-offF;ENDIF
+SHF; 
+dirF = _MTF; 
+#whileF
+curPosF=_TPF;errF=(curPosF - ^a);absErrF=@ABS[errF];
+IF absErrF < bandF; JP #breakF; ENDIF
+vF=kpF * absErrF
+IF vF < minSPF; vF = minSPF; ENDIF
+JGF = dirF * vF;
+IF errF > 0; 
+	IF 1 - @OUT[Bbit]; 
+		SBBbit; STF;WT 225; MOF; MTF = -1; OFF=-offF;SHF;
+	ENDIF; 
+	IF @OUT[Fbit]; CBFbit; ENDIF; 
+ELSE; 
+	IF 1 - @OUT[Fbit]; 
+		SBFbit; STF; WT 225; MOF; MTF = 1; OFF=offF;SHF;
+	ENDIF;
+	IF @OUT[Bbit]; CBBbit;; ENDIF; 
+ENDIF; 
+tmpF = _TTF;dirF = _MTF; 
+IF ((tmpF * dirF) < -.45); 
+	SBFbit; SBBbit; STF; WT 250; JP #gotoF; 
+ENDIF;
+BGF;
+JP #whileF
+#breakF
+	SBFbit; SBBbit;
+	STF; 
+	WT 225; 
+	MOF;
+EN
+
+#gotoF
+Fbit=7
+Bbit=15
+fFIN = 0;
+tUMF = tgtCtF;
+JS #gotoF_(tUMF); 
+JS #gotoF_(tUMF);
+SHF;
+fFIN = 1;
+EN

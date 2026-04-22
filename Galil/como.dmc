@@ -1,0 +1,14 @@
+##
+##
+#como
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+targetA = ^a; targetB = ^b; targetE = ^c; targetF = ^d;
+XQ #gotoA, 1;
+XQ #gotoB, 2;
+XQ #gotoE, 3;
+XQ #gotoF, 4;
+EN
+##include "/home/amiro/Documents/Galil/gotoA.dmc"
+##include "/home/amiro/Documents/Galil/gotoB.dmc"
+##include "/home/amiro/Documents/Galil/gotoE.dmc"
+##include "/home/amiro/Documents/Galil/gotoF.dmc"

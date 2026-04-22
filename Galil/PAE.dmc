@@ -1,0 +1,39 @@
+mm=-5
+dist = 948.586925*mm;
+E_pos=_TPF
+STF
+MOF
+MTF=1
+IF(mm<0)
+	MTF=-1
+ENDIF
+ACF=80
+DCF=500
+TLF=9.9
+KPF=6.4
+KIF=2
+KDF=6
+'SB13
+IF(mm<0)
+	CB7
+	MTF=-1
+ELSE
+	CB15
+	MTF=1
+ENDIF
+OFF=0
+SHF
+DPF=0
+PAF=dist
+BGF
+#while
+IF @ABS[_TPF] < @ABS[dist]
+	MG @ABS[(_TPF-_RPF)]
+	JP #while
+ENDIF
+AMF
+SB7
+SB15
+STF
+MOF
+EN

@@ -1,0 +1,199 @@
+##
+##
+
+#M 
+// tgtMmB = 9; tgtMmE = 9;
+// JS #GoToPos;
+// tgtCtA = 0; tgtCtF = 0;
+// XQ #gotoA, 4;
+// XQ #gotoF, 5;
+// JS #waitA; JS #waitF;
+EN
+
+
+
+#GoToLow
+dMotion = 0
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+// TLE=1.0;TLB=1.0;
+JS #mmToCtE;JS #mmToCtB;
+XQ #gotoB, 2;
+XQ #gotoE, 3;
+JS #waitB; JS #waitE;
+dMotion = 1
+WT 1500;
+dMotion = 0
+EN
+
+#GoToUp
+dMotion = 0
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+JS #mmToCtA;JS #mmToCtF;
+XQ #gotoA, 4;
+XQ #gotoF, 5;
+JS #waitA; JS #waitF;
+dMotion = 1
+WT 1500;
+dMotion = 0
+EN
+
+#GoToPos
+TL 3.2,3.2,3.2,3.2,3.2,3.2;
+TLE=1.0;TLB=1.0;
+dMotion = 0;
+isRun = 1;
+XQ #upTrj, 6; 
+JS #mmToCtE;JS #mmToCtB;
+XQ #gotoB, 2;
+XQ #gotoE, 3;
+WT 100;
+XQ #reHoA, 4;
+XQ #reHoF, 5;
+JS #waitALL;
+isRun = 0;
+WT 1000;
+dMotion = 1
+WT 1500;
+dMotion = 0
+EN
+
+
+#upTrj
+// fVelF = _TVE
+// fVelA = _TVB
+JS #trkLow;
+JS #mmToCtA;JS #mmToCtF;
+// fVelF = .7 * (tgtCtF - dPosF) + fVelF
+// fVelA = .7 * (tgtCtA - dPosA) + fVelA
+dPosF = tgtCtF;
+dPosA = tgtCtA;
+dVelF = _TVE;
+dVelA = _TVB;
+WT 2;
+IF isRun;
+	JP #upTrj;
+ENDIF;
+EN
+
+#homeUp
+dHome = 0
+STA; STF; WT225; MOA; MOF;
+MTA=1;MTF=1; SHA; SHF; WT100;
+TLA=3.2;
+TLF=3.2;
+IF msideA; durA = 1000; ELSE; durA = 9000; ENDIF;
+IF msideF; durF = 1000; ELSE; durF = 9000; ENDIF;
+XQ #homeF, 5;
+XQ #homeA, 4; 
+JS #waitA; JS #waitF;
+dHome = 1
+WT 1500;
+dHome = 0
+EN
+
+#homeLow
+dHome = 0
+STB; STE; WT225; MOB; MOE;
+MTB=1;MTE=1; SHB; SHE; WT100;
+TLB=3.2;
+TLE=3.2;
+IF msideB; durB = 1000; ELSE; durB = 5000; ENDIF;
+IF msideE; durE = 1000; ELSE; durE = 5000; ENDIF;
+XQ #homeB, 2;
+XQ #homeE, 3; 
+JS #waitB; JS #waitE;
+dHome = 1
+WT 1500;
+dHome = 0
+EN
+
+
+#homeA
+//pass one
+aFIN = 0;
+OFA=0.1;
+ACA=256000; DCA=256000; JGA=6000;
+BGA; CB9; 
+WT durA; SB9;SB1; STA; WT1500; 
+//find home
+SHA; FEA; BGA; CB1;  
+AMA;SB1; 
+PRA=1000; SPA=1300;
+BGA; CB9;AM A;SB9;SB1; WT500;
+//pass two, slower
+TLA=.3;SHA; FEA; BGA; CB1; 
+AMA;
+DPA=0;
+SB1;TLA=3.2;SHA;WT500;
+MOA;
+aFIN = 1;
+EN
+
+#homeF
+fFIN = 0;
+//pass one
+ACF=256000; DCF=256000;OFF=0.1;
+JGF=6000;BGF; CB16;
+WT durF;
+SB16;SB8; STF; WT1500;
+//find home
+SHF; FEF; BGF; CB8; 
+AM F;SB8; 
+PRF=1000; SPF=1300;
+BGF; 
+CB16;AM F;SB16;SB8; WT500;
+//pass two, slower
+TLF=.3;
+SHF; FEF; BGF; CB8; 
+AM F;
+DPF=0;
+SB8;TLF=3.2; SHF;WT500;
+MOF;
+fFIN = 1;
+EN
+
+#homeE
+eFIN = 0;
+//pass one
+ACE=256000; DCE=256000; 
+JGE=6000;BGE; CB13;
+WT durE;SB13;SB5;STE; WT500;
+//find home
+SHE; FEE; BGE; CB5; 
+AM E;SB5; 
+PRE=1000; SPE=1300;
+BGE; CB13;AM E;SB13;SB5;WT500; 
+//pass two, slower
+TLE=.3;
+SHE; FEE; BGE; CB5; 
+AM E;DPE=0; SB5;TLE=3.2; SHE; WT500;
+MOE;
+eFIN = 1;
+EN
+
+#homeB
+bFIN =0;
+//pass one
+ACB=256000; DCB=256000; 
+JGB=6000;BGB; CB10;
+WT durB;SB10;SB2;STB;WT500;
+//find home
+SHB; FEB; BGB; CB2; 
+AMB;SB2; 
+PRB=1000; SPB=1300;
+BGB; CB10;AM B;SB10;SB2; WT500;
+//pass two, slower
+TLB=.3;SHB; FEB; BGB; CB2; 
+AMB;
+DPB=0;
+SB2;TLB=3.2;SHB;WT500;
+MOB;
+bFIN = 1;
+EN
+
+##include "/home/amiro/Documents/Galil/gotoB.dmc"
+##include "/home/amiro/Documents/Galil/gotoE.dmc"
+##include "/home/amiro/Documents/Galil/helpers.dmc"
+##include "/home/amiro/Documents/Galil/calibration.dmc"
+##include "/home/amiro/Documents/Galil/A.dmc"
+##include "/home/amiro/Documents/Galil/F.dmc"

@@ -1,0 +1,58 @@
+#reHoF
+fFIN = 0;
+MOF; MTF=1; JGF=0; FVF=1; FAF=.75;
+ACF=12000; DCF=50000; SB8; SB16;
+kpF=3.1;bandF=250;minSPF=1100;
+offF = 0.20;OFF=offF;
+IF (_TPF - dPosF) > 0;MTF=-1;OFF=-offF;ENDIF
+SHF;
+dirF=_MTF; 
+#loopHoF
+poErF = _TPF - dPosF;
+dSpF = @ABS[dVelF]; 
+absPoErF = @ABS[poErF];
+IF (absPoErF < bandF);
+	IF (bFIN + eFIN) = 2;
+		JP #brkHoF;
+	ENDIF;
+	vF=kpF * absPoErF + dSpF;
+ELSE; 
+	vF=kpF * absPoErF + dSpF;
+ENDIF;
+IF vF < minSPF; vF = minSPF; ENDIF
+IF poErF > 0; 
+	IF 1 - @OUT[16]; 
+		SB16; SB8; STF; WT 225; MTF=-1; OFF=-offF; WT 100; SHF; 
+	ENDIF; 
+	IF @OUT[8]; CB8; ENDIF; 
+	JGF= -vF;
+ELSE; 
+	IF 1 - @OUT[8]; 
+		SB8; SB16; STF; WT 225; MTF=1; OFF=offF; WT 100; SHF; 
+	ENDIF;
+	IF @OUT[16]; CB16; ENDIF; 
+	JGF=vF;
+ENDIF;
+tmpF = _TTF;dirF = _MTF; 
+IF ((tmpF * dirF) < -0.45); 
+	SB8; SB16; STF; WT250; JP #reHoF; 
+ENDIF;
+BGF;
+stallCtF = 0;
+IF (@ABS[_TVF] < 10) & (vF > 500);
+	stallCtF = stallCtF + 1;
+	IF stallCtF > 500; 
+		MG "F STALLED"; 
+		JP #brkHoF;
+REM 		STF; WT 225;
+REM 		IF 1 - @OUT[8]; SB8; WT10; CB8; ENDIF; 
+REM 		IF 1 - @OUT[16]; SB16; WT10; CB16; ENDIF; 
+REM 		SHF; 
+REM 		JP #loopHoF;
+	ENDIF;
+ENDIF;
+JP #loopHoF;
+#brkHoF
+	SB16; SB8; STF; WT500; SHF;
+	fFIN = 1;
+EN
