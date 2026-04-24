@@ -327,39 +327,41 @@ class ActuateSlidesServer(Node):
         if command == 'MOVE':
             x, y, z, a = target_positions
 
-            if x != 0.0 or z != 0.0:
-                goal_handle.abort()
-                result.success = False
-                result.message = 'Lower-base mode only allows X=0 and Z=0. Use [0, dY, 0, dA].'
-                result.final_positions = [float(v) for v in self.current_position]
-                return result
-
-            # In this server, MOVE is treated as an incremental command for debug use:
-            #   [0, dY, 0, dA]
-            # The Arduino already behaves incrementally, so we keep that behavior and
-            # accumulate the software-side state before checking geometry.
+            # In this server, MOVE is treated as an incremental command.
             delta_y = float(y)
+            delta_x = float(x)
+            delta_z = float(z)
             delta_a = float(a)
 
-            current_y = float(self.current_position[1])
-            current_a = float(self.current_position[3])
+            current_x, current_y, current_z, current_a = [
+                float(v) for v in self.current_position
+            ]
+            proposed_x = current_x + delta_x
             proposed_y = current_y + delta_y
+            proposed_z = current_z + delta_z
             proposed_a = current_a + delta_a
 
             # Keep the accumulated pose inside the allowed travel window relative to HOME.
-            if proposed_y < -30.0 or proposed_y > 30.0 or proposed_a < -30.0 or proposed_a > 30.0:
+            limit = 30.0
+            if (
+                proposed_x < -limit or proposed_x > limit or
+                proposed_y < -limit or proposed_y > limit or
+                proposed_z < -limit or proposed_z > limit or
+                proposed_a < -limit or proposed_a > limit
+            ):
                 goal_handle.abort()
                 result.success = False
                 result.message = (
                     'Accumulated safe range exceeded. '
-                    f'Current=[0,{current_y:.2f},0,{current_a:.2f}], '
-                    f'Delta=[0,{delta_y:.2f},0,{delta_a:.2f}], '
-                    f'Proposed=[0,{proposed_y:.2f},0,{proposed_a:.2f}] must stay within [-30,30].'
+                    f'Current=[{current_x:.2f},{current_y:.2f},{current_z:.2f},{current_a:.2f}], '
+                    f'Delta=[{delta_x:.2f},{delta_y:.2f},{delta_z:.2f},{delta_a:.2f}], '
+                    f'Proposed=[{proposed_x:.2f},{proposed_y:.2f},{proposed_z:.2f},{proposed_a:.2f}] '
+                    f'must stay within [-{limit:.0f},{limit:.0f}].'
                 )
-                result.final_positions = [0.0, current_y, 0.0, current_a]
+                result.final_positions = [current_x, current_y, current_z, current_a]
                 return result
 
-            # ----- Geometry guard on the accumulated target pose -----
+            # Geometry guard currently applies to lower pair only (Y/A).
             try:
                 geom_state = self.geom.state_from_command(proposed_y, proposed_a)
             except ValueError as exc:
@@ -367,16 +369,16 @@ class ActuateSlidesServer(Node):
                 result.success = False
                 result.message = (
                     f'Geometry check failed at proposed accumulated pose '
-                    f'[0,{proposed_y:.2f},0,{proposed_a:.2f}]: {exc}'
+                    f'[{proposed_x:.2f},{proposed_y:.2f},{proposed_z:.2f},{proposed_a:.2f}]: {exc}'
                 )
-                result.final_positions = [0.0, current_y, 0.0, current_a]
+                result.final_positions = [current_x, current_y, current_z, current_a]
                 return result
 
             self.get_logger().info(
                 'Geom check | '
-                f"current=[0,{current_y:.2f},0,{current_a:.2f}] | "
-                f"delta=[0,{delta_y:.2f},0,{delta_a:.2f}] | "
-                f"proposed=[0,{proposed_y:.2f},0,{proposed_a:.2f}] | "
+                f"current=[{current_x:.2f},{current_y:.2f},{current_z:.2f},{current_a:.2f}] | "
+                f"delta=[{delta_x:.2f},{delta_y:.2f},{delta_z:.2f},{delta_a:.2f}] | "
+                f"proposed=[{proposed_x:.2f},{proposed_y:.2f},{proposed_z:.2f},{proposed_a:.2f}] | "
                 f"thetaL_raw={geom_state['theta_left_deg']:.2f} deg, "
                 f"thetaR_raw={geom_state['theta_right_deg']:.2f} deg, "
                 f"openingL={geom_state['opening_left_deg']:.2f} deg, "
@@ -390,21 +392,27 @@ class ActuateSlidesServer(Node):
                 goal_handle.abort()
                 result.success = False
                 result.message = (
-                    f"Geometry unsafe at proposed accumulated pose [0,{proposed_y:.2f},0,{proposed_a:.2f}]: "
+                    f"Geometry unsafe at proposed accumulated pose "
+                    f"[{proposed_x:.2f},{proposed_y:.2f},{proposed_z:.2f},{proposed_a:.2f}]: "
                     f"{geom_state['reason']}"
                 )
-                result.final_positions = [0.0, current_y, 0.0, current_a]
+                result.final_positions = [current_x, current_y, current_z, current_a]
                 return result
 
             # Send ONLY the incremental motion to Arduino.
-            steps = [0, int(delta_y * self.steps_per_mm), 0, int(delta_a * self.steps_per_mm)]
+            steps = [
+                int(delta_x * self.steps_per_mm),
+                int(delta_y * self.steps_per_mm),
+                int(delta_z * self.steps_per_mm),
+                int(delta_a * self.steps_per_mm),
+            ]
             cmd_str = f"MOVE,{steps[0]},{steps[1]},{steps[2]},{steps[3]},{float(speed)}\n"
 
             self.get_logger().info(f'Sending to Arduino: {cmd_str.strip()}')
             self.ser.write(cmd_str.encode())
             self.ser.flush()
 
-            accumulated_positions = [0.0, proposed_y, 0.0, proposed_a]
+            accumulated_positions = [proposed_x, proposed_y, proposed_z, proposed_a]
             if not self._read_serial_responses(goal_handle, accumulated_positions, feedback_msg):
                 goal_handle.abort()
                 result.success = False
@@ -416,8 +424,8 @@ class ActuateSlidesServer(Node):
             self.current_position = accumulated_positions
             result.success = True
             result.message = (
-                'Lower-base incremental motion completed | '
-                f"current=[0,{proposed_y:.2f},0,{proposed_a:.2f}] | "
+                '4-axis incremental motion completed | '
+                f"current=[{proposed_x:.2f},{proposed_y:.2f},{proposed_z:.2f},{proposed_a:.2f}] | "
                 f"dLR={geom_state['lr_distance_mm']:.2f} mm, "
                 f"openingL={geom_state['opening_left_deg']:.2f} deg, "
                 f"openingR={geom_state['opening_right_deg']:.2f} deg"
@@ -426,9 +434,11 @@ class ActuateSlidesServer(Node):
             return result
 
         if command == 'HOME':
+            x_dir_high = 1 if self.current_position[0] >= 0.0 else 0
             y_dir_high = 1 if self.current_position[1] >= 0.0 else 0
+            z_dir_high = 1 if self.current_position[2] >= 0.0 else 0
             a_dir_high = 1 if self.current_position[3] >= 0.0 else 0
-            cmd_str = f"HOME_LOWER_SMART,{y_dir_high},{a_dir_high}\n"
+            cmd_str = f"HOME_ALL_SMART,{x_dir_high},{y_dir_high},{z_dir_high},{a_dir_high}\n"
             self.get_logger().info(f'Sending to Arduino: {cmd_str.strip()}')
             time.sleep(0.1)
             self.ser.write(cmd_str.encode())
@@ -446,8 +456,8 @@ class ActuateSlidesServer(Node):
             self.current_position = [0.0, 0.0, 0.0, 0.0]
             result.success = True
             result.message = (
-                'Lower-base homing completed | '
-                f'smart_dirs=[{y_dir_high},{a_dir_high}]'
+                '4-axis homing completed | '
+                f'smart_dirs=[{x_dir_high},{y_dir_high},{z_dir_high},{a_dir_high}]'
             )
             result.final_positions = home_positions
             return result

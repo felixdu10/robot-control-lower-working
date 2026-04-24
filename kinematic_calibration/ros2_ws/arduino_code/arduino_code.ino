@@ -94,6 +94,31 @@ bool parseHomeSmartCommand(const String &cmd, bool &yDirHigh, bool &aDirHigh) {
   return true;
 }
 
+bool parseHomeAllSmartCommand(
+  const String &cmd,
+  bool &xDirHigh, bool &yDirHigh, bool &zDirHigh, bool &aDirHigh
+) {
+  int p1 = cmd.indexOf(',');
+  int p2 = cmd.indexOf(',', p1 + 1);
+  int p3 = cmd.indexOf(',', p2 + 1);
+  int p4 = cmd.indexOf(',', p3 + 1);
+
+  if (p1 < 0 || p2 < 0 || p3 < 0 || p4 < 0) {
+    return false;
+  }
+
+  int xVal = cmd.substring(p1 + 1, p2).toInt();
+  int yVal = cmd.substring(p2 + 1, p3).toInt();
+  int zVal = cmd.substring(p3 + 1, p4).toInt();
+  int aVal = cmd.substring(p4 + 1).toInt();
+
+  xDirHigh = (xVal != 0);
+  yDirHigh = (yVal != 0);
+  zDirHigh = (zVal != 0);
+  aDirHigh = (aVal != 0);
+  return true;
+}
+
 // ---------- ONE-DIRECTION HOMING (FAST → BACKOFF → SLOW) ----------
 void homeOneDirection(bool dirForward) {
   Serial.println("SINGLE HOMING (FAST + SLOW)");
@@ -285,6 +310,71 @@ void homeLowerSmart(bool yDirHigh, bool aDirHigh) {
   Serial.println("HOMING DONE");
 }
 
+void homeAllSmart(bool xDirHigh, bool yDirHigh, bool zDirHigh, bool aDirHigh) {
+  Serial.println("ENTER homeAllSmart()");
+  Serial.print("DIRS = ");
+  Serial.print(xDirHigh); Serial.print(",");
+  Serial.print(yDirHigh); Serial.print(",");
+  Serial.print(zDirHigh); Serial.print(",");
+  Serial.println(aDirHigh);
+  Serial.println("ALL SMART HOMING (X + Y + Z + A)");
+
+  // 第一遍：按每个轴各自方向去撞限位
+  digitalWrite(X_DIR, xDirHigh ? HIGH : LOW);
+  digitalWrite(Y_DIR, yDirHigh ? HIGH : LOW);
+  digitalWrite(Z_DIR, zDirHigh ? HIGH : LOW);
+  digitalWrite(A_DIR, aDirHigh ? HIGH : LOW);
+
+  bool xHomed = false;
+  bool yHomed = false;
+  bool zHomed = false;
+  bool aHomed = false;
+
+  while (!(xHomed && yHomed && zHomed && aHomed)) {
+    if (!xHomed && isPressed(X_ENDSTOP)) xHomed = true;
+    if (!yHomed && isPressed(Y_ENDSTOP)) yHomed = true;
+    if (!zHomed && isPressed(Z_ENDSTOP)) zHomed = true;
+    if (!aHomed && isPressed(A_ENDSTOP)) aHomed = true;
+
+    pulseAll(!xHomed, !yHomed, !zHomed, !aHomed, FAST_DELAY_US);
+  }
+
+  // backoff：每个轴各自反向退一点
+  digitalWrite(X_DIR, xDirHigh ? LOW : HIGH);
+  digitalWrite(Y_DIR, yDirHigh ? LOW : HIGH);
+  digitalWrite(Z_DIR, zDirHigh ? LOW : HIGH);
+  digitalWrite(A_DIR, aDirHigh ? LOW : HIGH);
+
+  unsigned long startTime = millis();
+  while (millis() - startTime < 200) {
+    pulseAll(true, true, true, true, FAST_DELAY_US);
+  }
+
+  delay(200);
+
+  // 第二遍：慢速再去撞限位
+  digitalWrite(X_DIR, xDirHigh ? HIGH : LOW);
+  digitalWrite(Y_DIR, yDirHigh ? HIGH : LOW);
+  digitalWrite(Z_DIR, zDirHigh ? HIGH : LOW);
+  digitalWrite(A_DIR, aDirHigh ? HIGH : LOW);
+
+  xHomed = false;
+  yHomed = false;
+  zHomed = false;
+  aHomed = false;
+
+  while (!(xHomed && yHomed && zHomed && aHomed)) {
+    if (!xHomed && isPressed(X_ENDSTOP)) xHomed = true;
+    if (!yHomed && isPressed(Y_ENDSTOP)) yHomed = true;
+    if (!zHomed && isPressed(Z_ENDSTOP)) zHomed = true;
+    if (!aHomed && isPressed(A_ENDSTOP)) aHomed = true;
+
+    pulseAll(!xHomed, !yHomed, !zHomed, !aHomed, SECOND_PASS_DELAY);
+  }
+
+  Serial.println("HOMING DONE");
+}
+
 // ---------- MOVE ----------
 void moveSteps(int s1, int s2, int s3, int s4, float speed) {
   Serial.println("START MOVE");
@@ -424,7 +514,17 @@ void loop() {
       Serial.println("RECEIVED COMMAND >>>");
       Serial.println(cmd);
 
-      if (cmd.startsWith("HOME_LOWER_SMART")) {
+      if (cmd.startsWith("HOME_ALL_SMART")) {
+        Serial.println("CMD: HOME_ALL_SMART");
+
+        bool xDirHigh, yDirHigh, zDirHigh, aDirHigh;
+        if (!parseHomeAllSmartCommand(cmd, xDirHigh, yDirHigh, zDirHigh, aDirHigh)) {
+          Serial.println("ERR:HOME_ALL_SMART_PARSE");
+        } else {
+          homeAllSmart(xDirHigh, yDirHigh, zDirHigh, aDirHigh);
+        }
+      }
+      else if (cmd.startsWith("HOME_LOWER_SMART")) {
         Serial.println("CMD: HOME_LOWER_SMART");
 
         bool yDirHigh, aDirHigh;
@@ -445,8 +545,7 @@ void loop() {
         if (!parseMoveCommand(cmd, s1, s2, s3, s4, speed)) {
           Serial.println("ERR:MOVE_PARSE");
         } else {
-          // Lower-base mode uses only Y and A; X/Z are ignored.
-          moveLowerSteps(s2, s4, speed);
+          moveSteps(s1, s2, s3, s4, speed);
         }
       }
 
